@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>テスト成績分布シミュレーター</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', 'sans-serif';
+            background-color: #f8fafc;
+        }
+        .slider-custom {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            outline: none;
+        }
+        .slider-custom::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #6366f1;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-5xl mx-auto space-y-6">
+        
+        <!-- Header Section -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="p-2 bg-indigo-100 rounded-lg text-indigo-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-800">テスト成績の正規分布シミュレーター</h1>
+            </div>
+            <p class="text-slate-600">平均点や標準偏差を操作して、点数分布の変化と自分の偏差値を確認できます。</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Sidebar Controls -->
+            <div class="lg:col-span-4 space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex items-center gap-2 mb-6 font-bold text-slate-700 border-b pb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                        設定
+                    </div>
+
+                    <div class="space-y-6">
+                        <!-- Mean Input -->
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <label class="text-sm font-medium text-slate-700">平均点</label>
+                                <span class="text-sm font-bold text-indigo-600" id="meanText">60点</span>
+                            </div>
+                            <input type="range" id="meanInput" min="30" max="80" value="60" class="slider-custom">
+                        </div>
+
+                        <!-- StdDev Input -->
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <label class="text-sm font-medium text-slate-700">標準偏差（ばらつき）</label>
+                                <span class="text-sm font-bold text-indigo-600" id="stdDevText">15</span>
+                            </div>
+                            <input type="range" id="stdDevInput" min="5" max="25" value="15" class="slider-custom">
+                            <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">小さいほど平均付近に集中し、大きいほど点数が散らばります。</p>
+                        </div>
+
+                        <!-- User Score Input -->
+                        <div class="pt-4 border-t border-slate-100">
+                            <div class="flex justify-between mb-2">
+                                <label class="text-sm font-medium text-rose-600">あなたの点数</label>
+                                <span class="text-sm font-bold text-rose-600" id="userScoreText">75点</span>
+                            </div>
+                            <input type="range" id="userScoreInput" min="0" max="100" value="75" class="slider-custom" style="background: #fee2e2;">
+                        </div>
+                    </div>
+
+                    <!-- Deviation Result -->
+                    <div class="mt-8 bg-indigo-600 p-4 rounded-xl text-center shadow-lg shadow-indigo-200">
+                        <span class="text-xs text-indigo-100 block mb-1 uppercase tracking-wider font-semibold">現在の偏差値</span>
+                        <span class="text-4xl font-bold text-white" id="deviationResult">60.0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Chart Area -->
+            <div class="lg:col-span-8 space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-full">
+                    <h2 class="text-lg font-bold text-slate-800 mb-6">得点分布グラフ (ベルカーブ)</h2>
+                    <div class="relative h-[300px] w-full">
+                        <canvas id="scoreChart"></canvas>
+                    </div>
+
+                    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                            <h3 class="text-sm font-bold text-slate-700 mb-2 flex items-center gap-1">
+                                <span class="w-2 h-2 bg-indigo-500 rounded-full"></span> 正規分布の性質
+                            </h3>
+                            <ul class="text-xs text-slate-600 space-y-1 ml-3">
+                                <li>• 平均付近の人数が最も多い</li>
+                                <li>• 左右対称で美しい山型になる</li>
+                                <li>• 偏差値50が常に山の頂点（平均）</li>
+                            </ul>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                            <h3 class="text-sm font-bold text-slate-700 mb-2 flex items-center gap-1">
+                                <span class="w-2 h-2 bg-rose-500 rounded-full"></span> 読み方のヒント
+                            </h3>
+                            <ul class="text-xs text-slate-600 space-y-1 ml-3">
+                                <li>• 山が細い：全員の点数が近い</li>
+                                <li>• 山が太い：実力差がはっきりしている</li>
+                                <li>• 赤線が右にあるほど上位層</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Footer -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                偏差値の仕組み
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-slate-600 leading-relaxed">
+                <p>
+                    このグラフ（正規分布）において、平均点よりどれくらい離れているかを数値化したものが<strong>偏差値</strong>です。
+                    平均点と自分の点数が同じなら偏差値は必ず50になります。
+                </p>
+                <p>
+                    理論上、偏差値60（平均+1σ）以上は上位約16％、偏差値70（平均+2σ）以上は上位約2.3％に含まれます。
+                    テストの難易度（平均点）が変わっても、自分の「立ち位置」を不変的に示す指標です。
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const meanInput = document.getElementById('meanInput');
+        const stdDevInput = document.getElementById('stdDevInput');
+        const userScoreInput = document.getElementById('userScoreInput');
+        
+        const meanText = document.getElementById('meanText');
+        const stdDevText = document.getElementById('stdDevText');
+        const userScoreText = document.getElementById('userScoreText');
+        const deviationResult = document.getElementById('deviationResult');
+        
+        const ctx = document.getElementById('scoreChart').getContext('2d');
+        let chart;
+
+        // Math: Normal Density Function
+        function normalDensity(x, m, s) {
+            return (1 / (s * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - m) / s, 2));
+        }
+
+        function calculateDeviation(score, mean, stdDev) {
+            return ((score - mean) / stdDev) * 10 + 50;
+        }
+
+        function updateChart() {
+            const m = parseFloat(meanInput.value);
+            const s = parseFloat(stdDevInput.value);
+            const userScore = parseFloat(userScoreInput.value);
+
+            // Update UI text
+            meanText.innerText = m + '点';
+            stdDevText.innerText = s;
+            userScoreText.innerText = userScore + '点';
+            deviationResult.innerText = calculateDeviation(userScore, m, s).toFixed(1);
+
+            // Generate Data
+            const labels = [];
+            const dataPoints = [];
+            for (let i = 0; i <= 100; i++) {
+                labels.push(i);
+                dataPoints.push(normalDensity(i, m, s));
+            }
+
+            if (chart) {
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = dataPoints;
+                chart.options.plugins.verticalLines.mean = m;
+                chart.options.plugins.verticalLines.user = userScore;
+                chart.update('none');
+            } else {
+                initChart(labels, dataPoints, m, userScore);
+            }
+        }
+
+        function initChart(labels, dataPoints, m, userScore) {
+            const verticalLinesPlugin = {
+                id: 'verticalLines',
+                beforeDraw: (chart, args, options) => {
+                    const {ctx, chartArea: {top, bottom}, scales: {x}} = chart;
+                    
+                    // Draw Mean Line
+                    ctx.save();
+                    ctx.setLineDash([5, 5]);
+                    ctx.strokeStyle = '#94a3b8';
+                    ctx.lineWidth = 1;
+                    const meanX = x.getPixelForValue(options.mean);
+                    ctx.beginPath();
+                    ctx.moveTo(meanX, top);
+                    ctx.lineTo(meanX, bottom);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // Draw User Line
+                    ctx.save();
+                    ctx.strokeStyle = '#ef4444';
+                    ctx.lineWidth = 3;
+                    const userX = x.getPixelForValue(options.user);
+                    ctx.beginPath();
+                    ctx.moveTo(userX, top);
+                    ctx.lineTo(userX, bottom);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            };
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataPoints,
+                        borderColor: '#6366f1',
+                        borderWidth: 3,
+                        backgroundColor: (context) => {
+                            const ctx = context.chart.ctx;
+                            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.4)');
+                            gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
+                            return gradient;
+                        },
+                        fill: true,
+                        pointRadius: 0,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false },
+                        verticalLines: {
+                            mean: m,
+                            user: userScore
+                        }
+                    },
+                    scales: {
+                        y: { display: false, beginAtZero: true },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                callback: (value) => value % 20 === 0 ? value : ''
+                            }
+                        }
+                    }
+                },
+                plugins: [verticalLinesPlugin]
+            });
+        }
+
+        // Listeners
+        [meanInput, stdDevInput, userScoreInput].forEach(input => {
+            input.addEventListener('input', updateChart);
+        });
+
+        // Initialize
+        window.onload = updateChart;
+    </script>
+</body>
+</html>
